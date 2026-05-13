@@ -92,6 +92,7 @@ public class SeasonColorConfigScreen extends Screen {
                 updateRealTime = true;
                 ColorfulSeasonsScreen.updateRealTime = true;
             }
+            this.rebuildWidgets();
         });
 
 
