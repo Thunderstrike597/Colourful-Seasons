@@ -14,15 +14,16 @@ public class ColorfulSeasonsScreen extends Screen {
     public ColorfulSeasonsScreen(Component component) {
         super(component);
     }
-    public static SeasonColorSettings GRASS_SPRING  = new SeasonColorSettings(  0,  0,  0,  0.5);  // no change
-    public static SeasonColorSettings GRASS_SUMMER  = new SeasonColorSettings(  0, 30,  0,  0.5);  // greener
-    public static SeasonColorSettings GRASS_AUTUMN  = new SeasonColorSettings(86,  10,  10,  0.5);  // red
-    public static SeasonColorSettings GRASS_WINTER  = new SeasonColorSettings(  0,  0, 20,  0.45); // slight blue, darker
-    public static SeasonColorSettings FOLIAGE_SPRING  = new SeasonColorSettings(  0,  0,  0,  0.5);
-    public static SeasonColorSettings FOLIAGE_SUMMER  = new SeasonColorSettings(  0, 25,  0,  0.5);
-    public static SeasonColorSettings FOLIAGE_AUTUMN  = new SeasonColorSettings( 90,  16,  2,  0.65);  // orange-red
-    public static SeasonColorSettings FOLIAGE_WINTER  = new SeasonColorSettings(  2, 12, 98,  0.65); // blue, slightly dark
+    public static boolean updateRealTime = false;
 
+    public static SeasonColorSettings GRASS_SPRING   = new SeasonColorSettings(  0, 78, 22, 0.5);
+    public static SeasonColorSettings GRASS_SUMMER   = new SeasonColorSettings(  0, 30,  0, 0.5);
+    public static SeasonColorSettings GRASS_AUTUMN   = new SeasonColorSettings( 60, 22,  9, 0.5);
+    public static SeasonColorSettings GRASS_WINTER   = new SeasonColorSettings(  6, 21, 38, 0.45);
+    public static SeasonColorSettings FOLIAGE_SPRING = new SeasonColorSettings(  0, 95, 38, 0.5);
+    public static SeasonColorSettings FOLIAGE_SUMMER = new SeasonColorSettings(  0, 25,  0, 0.5);
+    public static SeasonColorSettings FOLIAGE_AUTUMN = new SeasonColorSettings( 85,  8, 18, 0.5);
+    public static SeasonColorSettings FOLIAGE_WINTER = new SeasonColorSettings( 23, 35, 94, 0.45);
 
     public static SeasonColorConfigScreen SPRING_CONFIG_SCREEN;
     public static SeasonColorConfigScreen SUMMER_CONFIG_SCREEN;

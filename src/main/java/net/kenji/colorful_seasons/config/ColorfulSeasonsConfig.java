@@ -22,6 +22,8 @@ public class ColorfulSeasonsConfig {
 
     // Plain data class Gson can serialize
     private static class ConfigData {
+        boolean updateRealTime = false;
+
         int[] grassSpring   = {0, 0, 0};       double grassSpringL   = 0.5;
         int[] grassSummer   = {0, 30, 0};      double grassSummerL   = 0.5;
         int[] grassAutumn   = {86, 10, 10};    double grassAutumnL   = 0.5;
@@ -35,6 +37,7 @@ public class ColorfulSeasonsConfig {
 
     public static void save() {
         ConfigData data = new ConfigData();
+        data.updateRealTime = ColorfulSeasonsScreen.updateRealTime;
 
         data.grassSpring  = toArr(ColorfulSeasonsScreen.GRASS_SPRING);
         data.grassSpringL = ColorfulSeasonsScreen.GRASS_SPRING.lightness();
@@ -67,6 +70,7 @@ public class ColorfulSeasonsConfig {
 
         try (Reader reader = new FileReader(file)) {
             ConfigData data = GSON.fromJson(reader, ConfigData.class);
+            ColorfulSeasonsScreen.updateRealTime = data.updateRealTime;
 
             ColorfulSeasonsScreen.GRASS_SPRING  = fromArr(data.grassSpring,  data.grassSpringL);
             ColorfulSeasonsScreen.GRASS_SUMMER  = fromArr(data.grassSummer,  data.grassSummerL);

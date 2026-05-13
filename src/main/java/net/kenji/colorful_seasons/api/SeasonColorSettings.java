@@ -4,4 +4,6 @@ package net.kenji.colorful_seasons.api;
 // lightness: 0.0 = black, 0.5 = no change, 1.0 = white
 public record SeasonColorSettings(int r, int g, int b, double lightness) {
     public static final SeasonColorSettings NONE = new SeasonColorSettings(0, 0, 0, 0.5);
+
+
 }
