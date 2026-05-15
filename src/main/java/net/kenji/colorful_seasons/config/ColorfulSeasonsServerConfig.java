@@ -2,23 +2,29 @@ package net.kenji.colorful_seasons.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.kenji.colorful_seasons.api.SeasonalColorManager;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
-import net.kenji.colorful_seasons.screens.ColorfulSeasonsScreen;
+import net.kenji.colorful_seasons.api.SeasonalColorManager;
+import net.kenji.colorful_seasons.network.ClientSeasonalColorSyncPacket;
+import net.kenji.colorful_seasons.network.ModPacketHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.*;
 import java.nio.file.Path;
 
-public class ColorfulSeasonsConfig {
+public class ColorfulSeasonsServerConfig {
+
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    // Path: .minecraft/config/colorful_seasons.json
-    private static Path getConfigPath() {
-        return Minecraft.getInstance().gameDirectory.toPath()
-                .resolve("config")
-                .resolve("colorful_seasons.json");
+    private static Path getConfigPath(MinecraftServer server) {
+        return server.getWorldPath(LevelResource.ROOT)
+                .resolve("serverconfig")
+                .resolve("colorful_seasons_server.json");
     }
 
     // Plain data class Gson can serialize
@@ -36,7 +42,7 @@ public class ColorfulSeasonsConfig {
         int[] foliageWinter = {2, 12, 98};     double foliageWinterL   = 0.65;
     }
 
-    public static void save() {
+    public static void save(MinecraftServer server) {
         ConfigData data = new ConfigData();
         data.updateRealTime = SeasonalColorManager.updateRealTime;
 
@@ -58,15 +64,19 @@ public class ColorfulSeasonsConfig {
         data.foliageWinter  = toArr(SeasonalColorManager.FOLIAGE_WINTER);
         data.foliageWinterL = SeasonalColorManager.FOLIAGE_WINTER.lightness();
 
-        try (Writer writer = new FileWriter(getConfigPath().toFile())) {
-            GSON.toJson(data, writer);
+        try {
+            File file = getConfigPath(server).toFile();
+            file.getParentFile().mkdirs(); // ensure config dir exists
+            try (Writer writer = new FileWriter(file)) {
+                GSON.toJson(data, writer);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void load() {
-        File file = getConfigPath().toFile();
+    public static void load(MinecraftServer server) {
+        File file = getConfigPath(server).toFile();
         if (!file.exists()) return; // first launch, use defaults
 
         try (Reader reader = new FileReader(file)) {
@@ -89,7 +99,26 @@ public class ColorfulSeasonsConfig {
             e.printStackTrace();
         }
     }
+    public static void onServerStarting(ServerStartingEvent event) {
+        System.out.println("[ColorfulSeasons] Server starting, config path: " + getConfigPath(event.getServer()).toAbsolutePath());
+        load(event.getServer());
+        // Broadcast loaded values to any already-connected clients
+        ModPacketHandler.sendToAll(new ClientSeasonalColorSyncPacket(
+                SeasonalColorManager.updateRealTime,
+                SeasonalColorManager.GRASS_SPRING,
+                SeasonalColorManager.GRASS_SUMMER,
+                SeasonalColorManager.GRASS_AUTUMN,
+                SeasonalColorManager.GRASS_WINTER,
+                SeasonalColorManager.FOLIAGE_SPRING,
+                SeasonalColorManager.FOLIAGE_SUMMER,
+                SeasonalColorManager.FOLIAGE_AUTUMN,
+                SeasonalColorManager.FOLIAGE_WINTER
+        ));
+    }
 
+    public static void onServerStopping(ServerStoppingEvent event) {
+        save(event.getServer());
+    }
     private static int[] toArr(SeasonColorSettings s) {
         return new int[]{s.r(), s.g(), s.b()};
     }

@@ -1,29 +1,19 @@
 package net.kenji.colorful_seasons.screens;
 
 import com.mojang.datafixers.util.Pair;
-import net.kenji.colorful_seasons.api.SeasonColorSettings;
+import net.kenji.colorful_seasons.api.SeasonalColorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import sereneseasons.api.season.Season;
-import sereneseasons.season.SeasonHandler;
 
 
 public class ColorfulSeasonsScreen extends Screen {
     public ColorfulSeasonsScreen(Component component) {
         super(component);
     }
-    public static boolean updateRealTime = false;
 
-    public static SeasonColorSettings GRASS_SPRING   = new SeasonColorSettings(  0, 78, 22, 0.5);
-    public static SeasonColorSettings GRASS_SUMMER   = new SeasonColorSettings(  0, 30,  0, 0.5);
-    public static SeasonColorSettings GRASS_AUTUMN   = new SeasonColorSettings( 60, 22,  9, 0.5);
-    public static SeasonColorSettings GRASS_WINTER   = new SeasonColorSettings(  6, 21, 38, 0.45);
-    public static SeasonColorSettings FOLIAGE_SPRING = new SeasonColorSettings(  0, 95, 38, 0.5);
-    public static SeasonColorSettings FOLIAGE_SUMMER = new SeasonColorSettings(  0, 25,  0, 0.5);
-    public static SeasonColorSettings FOLIAGE_AUTUMN = new SeasonColorSettings( 85,  8, 18, 0.5);
-    public static SeasonColorSettings FOLIAGE_WINTER = new SeasonColorSettings( 23, 35, 94, 0.45);
 
     public static SeasonColorConfigScreen SPRING_CONFIG_SCREEN;
     public static SeasonColorConfigScreen SUMMER_CONFIG_SCREEN;
@@ -38,10 +28,10 @@ public class ColorfulSeasonsScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        openSpringButton = createNewButton(Season.SPRING, () -> Minecraft.getInstance().setScreen(SPRING_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("SpringColorScreen"), Season.SPRING, GRASS_SPRING, FOLIAGE_SPRING)));
-        openSummerButton = createNewButton(Season.SUMMER, () -> Minecraft.getInstance().setScreen(SUMMER_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("SummerColorScreen"), Season.SUMMER, GRASS_SUMMER, FOLIAGE_SUMMER)));
-        openAutumnButton = createNewButton(Season.AUTUMN, () -> Minecraft.getInstance().setScreen(AUTUMN_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("AutumnColorScreen"), Season.AUTUMN, GRASS_AUTUMN, FOLIAGE_AUTUMN)));
-        openWinterButton = createNewButton(Season.WINTER, () -> Minecraft.getInstance().setScreen(WINTER_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("WinterColorScreen"), Season.WINTER, GRASS_WINTER, FOLIAGE_WINTER)));
+        openSpringButton = createNewButton(Season.SPRING, () -> Minecraft.getInstance().setScreen(SPRING_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("SpringColorScreen"), Season.SPRING, SeasonalColorManager.GRASS_SPRING, SeasonalColorManager.FOLIAGE_SPRING)));
+        openSummerButton = createNewButton(Season.SUMMER, () -> Minecraft.getInstance().setScreen(SUMMER_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("SummerColorScreen"), Season.SUMMER, SeasonalColorManager.GRASS_SUMMER, SeasonalColorManager.FOLIAGE_SUMMER)));
+        openAutumnButton = createNewButton(Season.AUTUMN, () -> Minecraft.getInstance().setScreen(AUTUMN_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("AutumnColorScreen"), Season.AUTUMN, SeasonalColorManager.GRASS_AUTUMN, SeasonalColorManager.FOLIAGE_AUTUMN)));
+        openWinterButton = createNewButton(Season.WINTER, () -> Minecraft.getInstance().setScreen(WINTER_CONFIG_SCREEN = new SeasonColorConfigScreen(Component.literal("WinterColorScreen"), Season.WINTER, SeasonalColorManager.GRASS_WINTER, SeasonalColorManager.FOLIAGE_WINTER)));
 
         addRenderableWidget(openSpringButton);
         addRenderableWidget(openSummerButton);
@@ -71,7 +61,7 @@ public class ColorfulSeasonsScreen extends Screen {
     public Pair<Integer, Integer> getButtonPosition(Season season) {
         int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight(); // was getScreenHeight()
-        int finalHeight = screenHeight / 2;
+        int finalHeight = screenHeight / 2 - 40;
 
         switch (season) {
             case SPRING -> finalHeight -= 75;

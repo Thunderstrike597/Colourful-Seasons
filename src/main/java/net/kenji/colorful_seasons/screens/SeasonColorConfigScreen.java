@@ -1,8 +1,10 @@
 package net.kenji.colorful_seasons.screens;
 
 import com.mojang.datafixers.util.Pair;
+import net.kenji.colorful_seasons.api.SeasonalColorManager;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
-import net.kenji.colorful_seasons.config.ColorfulSeasonsConfig;
+import net.kenji.colorful_seasons.network.ModPacketHandler;
+import net.kenji.colorful_seasons.network.ServerSeasonalColorPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -49,7 +51,20 @@ public class SeasonColorConfigScreen extends Screen {
 
     public Season season;
 
+    private final static int SCREEN_OFFSET_BUTTON = 40;
+    private final static int SCREEN_OFFSET_SLIDER = 10;
+
     Map<SeasonColorHandlers.ResolverType, Integer> lastSettings = new HashMap<>();
+
+    public static SeasonColorSettings GRASS_SPRING   = SeasonalColorManager.GRASS_SPRING;
+    public static SeasonColorSettings GRASS_SUMMER   = SeasonalColorManager.GRASS_SUMMER;
+    public static SeasonColorSettings GRASS_AUTUMN   = SeasonalColorManager.GRASS_AUTUMN;
+    public static SeasonColorSettings GRASS_WINTER   = SeasonalColorManager.GRASS_WINTER;
+    public static SeasonColorSettings FOLIAGE_SPRING = SeasonalColorManager.FOLIAGE_SPRING;
+    public static SeasonColorSettings FOLIAGE_SUMMER = SeasonalColorManager.FOLIAGE_SUMMER;
+    public static SeasonColorSettings FOLIAGE_AUTUMN = SeasonalColorManager.FOLIAGE_AUTUMN;
+    public static SeasonColorSettings FOLIAGE_WINTER = SeasonalColorManager.FOLIAGE_WINTER;
+
 
     public SeasonColorConfigScreen(Component component, Season season, SeasonColorSettings grassColorSettings, SeasonColorSettings foliageColorSettings){
         super(component);
@@ -65,7 +80,7 @@ public class SeasonColorConfigScreen extends Screen {
             foliageCurrentValueB = foliageColorSettings.b();
             foliageCurrentLightness = foliageColorSettings.lightness();
         }
-        this.updateRealTime = ColorfulSeasonsScreen.updateRealTime;
+        this.updateRealTime = SeasonalColorManager.updateRealTime;
         this.season = season;
     }
 
@@ -84,16 +99,24 @@ public class SeasonColorConfigScreen extends Screen {
         foliageLightnessSlider = createNewSlider(ColorValue.LIGHTNESS, SeasonColorHandlers.ResolverType.FOLIAGE);
 
         updateRealTimeButton = createNewButton(() -> {
-            if(ColorfulSeasonsScreen.updateRealTime) {
+            if(SeasonalColorManager.updateRealTime) {
                 updateRealTime = false;
-                ColorfulSeasonsScreen.updateRealTime = false;
+                SeasonalColorManager.updateRealTime = false;
             }
             else {
                 updateRealTime = true;
-                ColorfulSeasonsScreen.updateRealTime = true;
+                SeasonalColorManager.updateRealTime = true;
             }
             this.rebuildWidgets();
         });
+        GRASS_SPRING   = SeasonalColorManager.GRASS_SPRING;
+        GRASS_SUMMER   = SeasonalColorManager.GRASS_SUMMER;
+        GRASS_AUTUMN   = SeasonalColorManager.GRASS_AUTUMN;
+        GRASS_WINTER   = SeasonalColorManager.GRASS_WINTER;
+        FOLIAGE_SPRING = SeasonalColorManager.FOLIAGE_SPRING;
+        FOLIAGE_SUMMER = SeasonalColorManager.FOLIAGE_SUMMER;
+        FOLIAGE_AUTUMN = SeasonalColorManager.FOLIAGE_AUTUMN;
+        FOLIAGE_WINTER = SeasonalColorManager.FOLIAGE_WINTER;
 
 
         addRenderableWidget(grassColorSliderR);  // was addWidget
@@ -112,22 +135,21 @@ public class SeasonColorConfigScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-
         if(season == Season.SPRING){
-            ColorfulSeasonsScreen.GRASS_SPRING = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
-            ColorfulSeasonsScreen.FOLIAGE_SPRING = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
+            GRASS_SPRING = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
+            FOLIAGE_SPRING = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
         }
         if(season == Season.SUMMER){
-            ColorfulSeasonsScreen.GRASS_SUMMER = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
-            ColorfulSeasonsScreen.FOLIAGE_SUMMER = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
+            GRASS_SUMMER = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
+            FOLIAGE_SUMMER = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
         }
         if(season == Season.AUTUMN){
-            ColorfulSeasonsScreen.GRASS_AUTUMN = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
-            ColorfulSeasonsScreen.FOLIAGE_AUTUMN = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
+            GRASS_AUTUMN = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
+            FOLIAGE_AUTUMN = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
         }
         if(season == Season.WINTER){
-            ColorfulSeasonsScreen.GRASS_WINTER = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
-            ColorfulSeasonsScreen.FOLIAGE_WINTER = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
+            GRASS_WINTER = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
+            FOLIAGE_WINTER = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
         }
         SeasonColorSettings grassSettings = getColorSettings(this, SeasonColorHandlers.ResolverType.GRASS);
         SeasonColorSettings foliageSettings = getColorSettings(this, SeasonColorHandlers.ResolverType.FOLIAGE);
@@ -135,41 +157,44 @@ public class SeasonColorConfigScreen extends Screen {
         int lastGrassRgb = lastSettings.getOrDefault(SeasonColorHandlers.ResolverType.GRASS, -1);
         int lastFoliageRgb = lastSettings.getOrDefault(SeasonColorHandlers.ResolverType.FOLIAGE, -1);
 
-        int grassRbg = grassSettings.r() + grassSettings.g() + grassSettings.b();
-        int foliageRbg = foliageSettings.r() + foliageSettings.g() + foliageSettings.b();
+        int grassHash = grassSettings.r() + grassSettings.g() + grassSettings.b()
+                + (int)(grassSettings.lightness() * 1000);
+        int foliageHash = foliageSettings.r() + foliageSettings.g() + foliageSettings.b()
+                + (int)(foliageSettings.lightness() * 1000);
 
-        if(updateRealTime && (lastGrassRgb != -1 && lastFoliageRgb != -1)) {
-            if (grassRbg != lastGrassRgb || foliageRbg != lastFoliageRgb) {
-                Minecraft.getInstance().levelRenderer.allChanged();
+        if ((lastGrassRgb != -1 && lastFoliageRgb != -1)) {
+            if (grassHash != lastGrassRgb || foliageHash != lastFoliageRgb) {
+                syncSeasonalColorsToServer();
             }
         }
-        lastSettings.put(SeasonColorHandlers.ResolverType.GRASS, grassRbg);
-        lastSettings.put(SeasonColorHandlers.ResolverType.FOLIAGE, foliageRbg);
+        lastSettings.put(SeasonColorHandlers.ResolverType.GRASS, grassHash);
+        lastSettings.put(SeasonColorHandlers.ResolverType.FOLIAGE, foliageHash);
     }
+
+
 
     Button createNewButton(Runnable runnable) {
         int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight(); // was getScreenHeight()
 
         return Button.builder(Component.literal("Update RealTime: " + (updateRealTime ? "ON" : "OFF")), (button) -> runnable.run())
-                .pos(screenWidth / 2, 20)
+                .pos(screenWidth / 2 - SCREEN_OFFSET_BUTTON, 20)
                 .size(100, 20)  // add this
                 .build();
     }
 
-    public SeasonColorSettings getColorSettings(SeasonColorConfigScreen screen, SeasonColorHandlers.ResolverType type){
-        return switch (type)
-        {
+    public SeasonColorSettings getColorSettings(SeasonColorConfigScreen screen, SeasonColorHandlers.ResolverType type) {
+        return switch (type) {
             case GRASS -> new SeasonColorSettings(
-                    (int)screen.grassColorSliderR.getValue()
-                    ,(int)screen.grassColorSliderG.getValue()
-                    , (int)screen.grassColorSliderB.getValue()
-                    , screen.grassCurrentLightness);
+                    (int) screen.grassColorSliderR.getValue(),
+                    (int) screen.grassColorSliderG.getValue(),
+                    (int) screen.grassColorSliderB.getValue(),
+                    screen.grassLightnessSlider.getValue());  // ← read slider
             case FOLIAGE -> new SeasonColorSettings(
-                    (int)screen.foliageColorSliderR.getValue()
-                    ,(int)screen.foliageColorSliderG.getValue()
-                    , (int)screen.foliageColorSliderB.getValue()
-                    , screen.grassCurrentLightness);
+                    (int) screen.foliageColorSliderR.getValue(),
+                    (int) screen.foliageColorSliderG.getValue(),
+                    (int) screen.foliageColorSliderB.getValue(),
+                    screen.foliageLightnessSlider.getValue());  // ← read slider
         };
     }
 
@@ -193,8 +218,10 @@ public class SeasonColorConfigScreen extends Screen {
                 type == SeasonColorHandlers.ResolverType.GRASS ? Component.literal("Grass") : Component.literal("Foliage"),
                 Component.literal(value.name()),
                 0,
-                value == ColorValue.LIGHTNESS ? 1 : 100,
+                value == ColorValue.LIGHTNESS ? 1.0 : 100,
                 getCurrentValue(value, type),
+                value == ColorValue.LIGHTNESS ? 0.1 : 1,
+                1,
                 true
         );
     }
@@ -219,7 +246,7 @@ public class SeasonColorConfigScreen extends Screen {
         int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight(); // was getScreenHeight()
         int finalHeight = screenHeight / 2;
-        int finalWidth = screenWidth / 2;
+        int finalWidth = screenWidth / 2 - SCREEN_OFFSET_SLIDER;
 
         switch (value){
             case R -> finalHeight -= 50;
@@ -237,8 +264,23 @@ public class SeasonColorConfigScreen extends Screen {
     @Override
     public void onClose() {
         super.onClose();
-        ColorfulSeasonsConfig.save();
-        Minecraft.getInstance().levelRenderer.allChanged();
+
+        syncSeasonalColorsToServer();
+    }
+
+    public static void syncSeasonalColorsToServer(){
+
+        ModPacketHandler.sendToServer(new ServerSeasonalColorPacket(
+                SeasonalColorManager.updateRealTime,
+                GRASS_SPRING,
+                GRASS_SUMMER,
+                GRASS_AUTUMN,
+                GRASS_WINTER,
+                FOLIAGE_SPRING,
+                FOLIAGE_SUMMER,
+                FOLIAGE_AUTUMN,
+                FOLIAGE_WINTER
+        ));
     }
 
 }

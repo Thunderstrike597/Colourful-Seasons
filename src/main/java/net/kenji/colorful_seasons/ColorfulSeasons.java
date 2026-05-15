@@ -2,41 +2,27 @@ package net.kenji.colorful_seasons;
 
 import com.mojang.logging.LogUtils;
 import net.kenji.colorful_seasons.config.ColorfulSeasonsConfig;
+import net.kenji.colorful_seasons.config.ColorfulSeasonsServerConfig;
+import net.kenji.colorful_seasons.network.ModPacketHandler;
 import net.kenji.colorful_seasons.screens.ColorfulSeasonsScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-import org.checkerframework.checker.units.qual.C;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import sereneseasons.season.SeasonColorHandlers;
-import sereneseasons.util.Color;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(ColorfulSeasons.MODID)
@@ -49,25 +35,31 @@ public class ColorfulSeasons {
 
 
     public ColorfulSeasons() {
-        IEventBus modEventBus = MinecraftForge.EVENT_BUS;
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         // Register the commonSetup method for modloading
-        modEventBus.addListener(this::commonSetup);
+
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-
-        SeasonColorHandlers.registerResolverOverride(
-                SeasonColorHandlers.ResolverType.GRASS,
-                new ExaggeratedColorOverride(SeasonColorHandlers.ResolverType.GRASS)
-        );
-        SeasonColorHandlers.registerResolverOverride(
-                SeasonColorHandlers.ResolverType.FOLIAGE,
-                new ExaggeratedColorOverride(SeasonColorHandlers.ResolverType.FOLIAGE)
-        );
+        modEventBus.addListener(this::commonSetup);
+        MinecraftForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStarting);
+        MinecraftForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStopping);
+        if(FMLLoader.getDist() == Dist.CLIENT) {
+            SeasonColorHandlers.registerResolverOverride(
+                    SeasonColorHandlers.ResolverType.GRASS,
+                    new SeasonalColorOverride(SeasonColorHandlers.ResolverType.GRASS)
+            );
+            SeasonColorHandlers.registerResolverOverride(
+                    SeasonColorHandlers.ResolverType.FOLIAGE,
+                    new SeasonalColorOverride(SeasonColorHandlers.ResolverType.FOLIAGE)
+            );
+        }
+        BlockColorHandlers.init();
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
+        event.enqueueWork(ModPacketHandler::register);
     }
 
 
