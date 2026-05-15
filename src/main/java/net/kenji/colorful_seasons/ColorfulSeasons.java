@@ -3,6 +3,7 @@ package net.kenji.colorful_seasons;
 import com.mojang.logging.LogUtils;
 import net.kenji.colorful_seasons.config.ColorfulSeasonsConfig;
 import net.kenji.colorful_seasons.config.ColorfulSeasonsServerConfig;
+import net.kenji.colorful_seasons.keybinds.ModKeybinds;
 import net.kenji.colorful_seasons.network.ModPacketHandler;
 import net.kenji.colorful_seasons.screens.ColorfulSeasonsScreen;
 import net.minecraft.client.Minecraft;
@@ -43,8 +44,10 @@ public class ColorfulSeasons {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::commonSetup);
+
         MinecraftForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStarting);
         MinecraftForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStopping);
+
         if(FMLLoader.getDist() == Dist.CLIENT) {
             SeasonColorHandlers.registerResolverOverride(
                     SeasonColorHandlers.ResolverType.GRASS,
@@ -78,17 +81,6 @@ public class ColorfulSeasons {
             );
 
             ColorfulSeasonsConfig.load();
-        }
-    }
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
-    public static class ClientModEvents {
-
-        @SubscribeEvent
-        public static void onClientSetup(InputEvent.Key event) {
-            if(event.getKey() == GLFW.GLFW_KEY_BACKSLASH){
-                Minecraft.getInstance().setScreen(new ColorfulSeasonsScreen(Component.literal("Settings Screen")));
-            }
         }
     }
 }

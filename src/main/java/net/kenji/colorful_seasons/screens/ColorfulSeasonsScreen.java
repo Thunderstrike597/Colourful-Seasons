@@ -61,7 +61,7 @@ public class ColorfulSeasonsScreen extends Screen {
     public Pair<Integer, Integer> getButtonPosition(Season season) {
         int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight(); // was getScreenHeight()
-        int finalHeight = screenHeight / 2 - 40;
+        int finalHeight = screenHeight / 2;
 
         switch (season) {
             case SPRING -> finalHeight -= 75;
