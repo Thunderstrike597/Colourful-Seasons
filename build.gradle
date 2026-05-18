@@ -132,7 +132,7 @@ tasks.named('processResources', ProcessResources).configure {
         expand replaceProperties + [project: project]
     }
     base {
-        archivesName = minecraft_version + "-"+ jar_display_name
+        archivesName = "NeoForge-" + jar_display_name
     }
 }
 
