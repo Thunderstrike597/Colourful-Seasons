@@ -2,16 +2,17 @@ package net.kenji.colorful_seasons.screens;
 
 import com.mojang.datafixers.util.Pair;
 import net.kenji.colorful_seasons.api.ConfigManager;
+import net.kenji.colorful_seasons.api.NeoforgeSlider;
 import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
 import net.kenji.colorful_seasons.network.ModPacketHandler;
 import net.kenji.colorful_seasons.network.ServerSeasonalColorPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractOptionSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.client.gui.widget.ForgeSlider;
 import sereneseasons.api.season.Season;
 import sereneseasons.season.SeasonColorHandlers;
 
@@ -36,15 +37,15 @@ public class SeasonColorConfigScreen extends Screen {
     public double foliageCurrentLightness = 0.5;
 
 
-    public ForgeSlider grassColorSliderR;
-    public ForgeSlider grassColorSliderG;
-    public ForgeSlider grassColorSliderB;
-    public ForgeSlider foliageColorSliderR;
-    public ForgeSlider foliageColorSliderG;
-    public ForgeSlider foliageColorSliderB;
+    public NeoforgeSlider grassColorSliderR;
+    public NeoforgeSlider grassColorSliderG;
+    public NeoforgeSlider grassColorSliderB;
+    public NeoforgeSlider foliageColorSliderR;
+    public NeoforgeSlider foliageColorSliderG;
+    public NeoforgeSlider foliageColorSliderB;
 
-    public ForgeSlider grassLightnessSlider;
-    public ForgeSlider foliageLightnessSlider;
+    public NeoforgeSlider grassLightnessSlider;
+    public NeoforgeSlider foliageLightnessSlider;
 
     public Button updateRealTimeButton;
 
@@ -100,6 +101,7 @@ public class SeasonColorConfigScreen extends Screen {
 
         updateRealTimeButton = createNewButton(() -> {
             SeasonalColorConfigValues.pendingUpdateRealTime = !SeasonalColorConfigValues.pendingUpdateRealTime;
+            ConfigManager.syncSeasonalColorsToServer();
             this.rebuildWidgets();
         });
         GRASS_SPRING   = SeasonalColorConfigValues.GRASS_SPRING;
@@ -197,14 +199,14 @@ public class SeasonColorConfigScreen extends Screen {
                 .build();
     }
 
-    ForgeSlider createNewSlider(ColorValue value, SeasonColorHandlers.ResolverType type){
+    NeoforgeSlider createNewSlider(ColorValue value, SeasonColorHandlers.ResolverType type){
         int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight(); // was getScreenHeight()
 
         Pair<Integer, Integer> widthHeightPair = new Pair<>(screenWidth / 2 + 10, screenHeight / 2 + 2);
         int sliderWidth = 150;  // fixed width
         int sliderHeight = 20;
-        return new ForgeSlider(
+        return new NeoforgeSlider(
                 getSliderPosition(value, type).getFirst(),
                 getSliderPosition(value, type).getSecond(),
                 sliderWidth,

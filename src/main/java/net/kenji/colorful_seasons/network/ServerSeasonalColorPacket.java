@@ -1,12 +1,18 @@
 package net.kenji.colorful_seasons.network;
 
+import net.kenji.colorful_seasons.ColorfulSeasons;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
 import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.kenji.colorful_seasons.config.ColorfulSeasonsConfig;
 import net.kenji.colorful_seasons.config.ColorfulSeasonsServerConfig;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jline.utils.Log;
 
 /**
  * @param grassSpring All 8 season settings
@@ -15,7 +21,13 @@ public record ServerSeasonalColorPacket(boolean affectModdedBlocks, boolean affe
                                         SeasonColorSettings grassSpring, SeasonColorSettings grassSummer,
                                         SeasonColorSettings grassAutumn, SeasonColorSettings grassWinter,
                                         SeasonColorSettings foliageSpring, SeasonColorSettings foliageSummer,
-                                        SeasonColorSettings foliageAutumn, SeasonColorSettings foliageWinter) {
+                                        SeasonColorSettings foliageAutumn, SeasonColorSettings foliageWinter) implements CustomPacketPayload {
+
+    public static CustomPacketPayload.Type<ServerSeasonalColorPacket> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(ColorfulSeasons.MODID, "sync_server_seasonal_color"));
+
+    public static StreamCodec<FriendlyByteBuf, ServerSeasonalColorPacket> STREAM_CODEC =
+            StreamCodec.of(ServerSeasonalColorPacket::encode, ServerSeasonalColorPacket::decode);
 
     // Helper to write one SeasonColorSettings
     private static void writeSettings(FriendlyByteBuf buf, SeasonColorSettings s) {
@@ -35,7 +47,7 @@ public record ServerSeasonalColorPacket(boolean affectModdedBlocks, boolean affe
         );
     }
 
-    public static void encode(ServerSeasonalColorPacket packet, FriendlyByteBuf buf) {
+    public static void encode(FriendlyByteBuf buf, ServerSeasonalColorPacket packet) {
         buf.writeBoolean(packet.affectModdedBlocks);
         buf.writeBoolean(packet.affectSpruceLeaves);
         buf.writeBoolean(packet.updateRealtime);
@@ -66,10 +78,11 @@ public record ServerSeasonalColorPacket(boolean affectModdedBlocks, boolean affe
     }
 
 
-    public static void handle(ServerSeasonalColorPacket packet, CustomPayloadEvent.Context ctx) {
+    public static void handle(ServerSeasonalColorPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            ServerPlayer player = ctx.getSender();
-            if (player == null) return;
+            Player player = ctx.player();
+            if(!(player instanceof ServerPlayer serverPlayer)) return;
+
 
 
             if (!SeasonalColorConfigValues.canAdjustSeasonalColor(player)) return;
@@ -101,13 +114,18 @@ public record ServerSeasonalColorPacket(boolean affectModdedBlocks, boolean affe
                     SeasonalColorConfigValues.FOLIAGE_AUTUMN,
                     SeasonalColorConfigValues.FOLIAGE_WINTER
             ));
-            if (!SeasonalColorConfigValues.isDedicatedServer(player)) {
+            Log.info("Logging Server Sync!");
+            if (!SeasonalColorConfigValues.isDedicatedServer(serverPlayer)) {
                 ColorfulSeasonsConfig.save();
             } else {
-                ColorfulSeasonsServerConfig.save(player.getServer());
+                ColorfulSeasonsServerConfig.save(serverPlayer.getServer());
             }
 
         });
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

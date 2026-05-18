@@ -7,6 +7,7 @@ import net.kenji.colorful_seasons.api.SeasonColorSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
@@ -18,8 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.Tags;
 import sereneseasons.api.season.ISeasonColorProvider;
 import sereneseasons.api.season.ISeasonState;
 import sereneseasons.api.season.Season;
@@ -114,7 +114,7 @@ public class BlockColorHandlers {
 
         // Collect all leaf blocks from the registry, excluding vanilla ones
         // you already handle elsewhere
-        List<Block> moddedLeaves = ForgeRegistries.BLOCKS.getValues().stream()
+        List<Block> moddedLeaves = BuiltInRegistries.BLOCK.stream()
                 .filter(block -> {
                     BlockState state = block.defaultBlockState();
                     return isLeafBlock(state)

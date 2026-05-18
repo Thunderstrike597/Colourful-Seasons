@@ -9,25 +9,25 @@ import net.kenji.colorful_seasons.screens.ColorfulSeasonsScreen;
 import net.kenji.colorful_seasons.screens.ConfigSettingsScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import sereneseasons.core.SereneSeasons;
 import sereneseasons.season.SeasonColorHandlers;
 
-// The value here should match an entry in the META-INF/mods.toml file
+// The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(ColorfulSeasons.MODID)
 public class ColorfulSeasons {
 
@@ -38,17 +38,16 @@ public class ColorfulSeasons {
 
 
     public ColorfulSeasons() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus modEventBus = ModLoadingContext.get().getActiveContainer().getEventBus();
 
         // Register the commonSetup method for modloading
 
 
         // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::commonSetup);
 
-        MinecraftForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStarting);
-        MinecraftForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStopping);
+        NeoForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(ColorfulSeasonsServerConfig::onServerStopping);
 
         if(FMLLoader.getDist() == Dist.CLIENT) {
             SeasonColorHandlers.registerResolverOverride(
@@ -64,22 +63,19 @@ public class ColorfulSeasons {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        event.enqueueWork(ModPacketHandler::register);
-    }
-
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
 
     }
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+
+
+    @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientSetup {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            ModLoadingContext.get().registerExtensionPoint(
-                    ConfigScreenHandler.ConfigScreenFactory.class,
-                    () -> new ConfigScreenHandler.ConfigScreenFactory((mc, screen) -> new ConfigSettingsScreen(Component.literal("Colorful Seasons"), screen))
+            ModList.get().getModContainerById(MODID).ifPresent(container ->
+                    container.registerExtensionPoint(
+                            IConfigScreenFactory.class,
+                            (mc, screen) -> new ConfigSettingsScreen(Component.literal("Colorful Seasons"), screen)
+                    )
             );
 
             ColorfulSeasonsConfig.load();

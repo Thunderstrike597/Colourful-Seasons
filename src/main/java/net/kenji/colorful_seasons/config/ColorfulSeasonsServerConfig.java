@@ -8,8 +8,8 @@ import net.kenji.colorful_seasons.network.ClientSeasonalColorSyncPacket;
 import net.kenji.colorful_seasons.network.ModPacketHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 import java.io.*;
 import java.nio.file.Path;

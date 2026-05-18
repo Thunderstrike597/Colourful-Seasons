@@ -6,11 +6,11 @@ import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.kenji.colorful_seasons.config.ColorfulSeasonsConfig;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-@Mod.EventBusSubscriber(modid = ColorfulSeasons.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ColorfulSeasons.MODID)
 public class ForgeEvents {
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
