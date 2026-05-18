@@ -212,7 +212,7 @@ tasks.named('processResources', ProcessResources).configure {
         rename { "${mod_id}.refmap.json" }
     }
     base {
-        archivesName = jar_display_name
+        archivesName = "Forge-" + jar_display_name
     }
 }
 
