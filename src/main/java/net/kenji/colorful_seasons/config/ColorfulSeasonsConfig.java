@@ -24,7 +24,7 @@ public class ColorfulSeasonsConfig {
     private static class ConfigData {
         boolean affectModdedBlocks = false;
         boolean affectSpruceLeaves = false;
-        boolean updateRealTime = false;
+        boolean updateRealTime = true;
 
         int[] grassSpring   = {0, 0, 0};       double grassSpringL   = 0.5;
         int[] grassSummer   = {0, 30, 0};      double grassSummerL   = 0.5;
