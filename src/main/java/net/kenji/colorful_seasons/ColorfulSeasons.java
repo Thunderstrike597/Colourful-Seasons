@@ -6,6 +6,7 @@ import net.kenji.colorful_seasons.config.ColorfulSeasonsServerConfig;
 import net.kenji.colorful_seasons.keybinds.ModKeybinds;
 import net.kenji.colorful_seasons.network.ModPacketHandler;
 import net.kenji.colorful_seasons.screens.ColorfulSeasonsScreen;
+import net.kenji.colorful_seasons.screens.ConfigSettingsScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,6 +24,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
+import sereneseasons.core.SereneSeasons;
 import sereneseasons.season.SeasonColorHandlers;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -72,12 +74,12 @@ public class ColorfulSeasons {
 
     }
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public class ClientSetup {
+    public static class ClientSetup {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             ModLoadingContext.get().registerExtensionPoint(
                     ConfigScreenHandler.ConfigScreenFactory.class,
-                    () -> new ConfigScreenHandler.ConfigScreenFactory((mc, screen) -> new ColorfulSeasonsScreen(Component.literal("Colorful Seasons")))
+                    () -> new ConfigScreenHandler.ConfigScreenFactory((mc, screen) -> new ConfigSettingsScreen(Component.literal("Colorful Seasons"), screen))
             );
 
             ColorfulSeasonsConfig.load();

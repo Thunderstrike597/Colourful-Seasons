@@ -1,6 +1,6 @@
 package net.kenji.colorful_seasons;
 
-import net.kenji.colorful_seasons.api.SeasonalColorManager;
+import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
@@ -40,10 +40,10 @@ public class SeasonalColorOverride implements SeasonColorHandlers.ColorOverride 
     private SeasonColorSettings getSettings(Season season) {
         boolean isGrass = type == SeasonColorHandlers.ResolverType.GRASS;
         return switch (season) {
-            case SPRING -> isGrass ? SeasonalColorManager.GRASS_SPRING : SeasonalColorManager.FOLIAGE_SPRING;
-            case SUMMER -> isGrass ? SeasonalColorManager.GRASS_SUMMER : SeasonalColorManager.FOLIAGE_SUMMER;
-            case AUTUMN -> isGrass ? SeasonalColorManager.GRASS_AUTUMN: SeasonalColorManager.FOLIAGE_AUTUMN;
-            case WINTER -> isGrass ? SeasonalColorManager.GRASS_WINTER : SeasonalColorManager.FOLIAGE_WINTER;
+            case SPRING -> isGrass ? SeasonalColorConfigValues.GRASS_SPRING : SeasonalColorConfigValues.FOLIAGE_SPRING;
+            case SUMMER -> isGrass ? SeasonalColorConfigValues.GRASS_SUMMER : SeasonalColorConfigValues.FOLIAGE_SUMMER;
+            case AUTUMN -> isGrass ? SeasonalColorConfigValues.GRASS_AUTUMN: SeasonalColorConfigValues.FOLIAGE_AUTUMN;
+            case WINTER -> isGrass ? SeasonalColorConfigValues.GRASS_WINTER : SeasonalColorConfigValues.FOLIAGE_WINTER;
         };
     }
 

@@ -1,41 +1,22 @@
 package net.kenji.colorful_seasons.network;
 
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
-import net.kenji.colorful_seasons.api.SeasonalColorManager;
+import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
-import java.util.function.Supplier;
-
-public class ClientSeasonalColorSyncPacket {
-
-    public final boolean updateRealtime;
-    // All 8 season settings
-    public final SeasonColorSettings grassSpring;
-    public final SeasonColorSettings grassSummer;
-    public final SeasonColorSettings grassAutumn;
-    public final SeasonColorSettings grassWinter;
-    public final SeasonColorSettings foliageSpring;
-    public final SeasonColorSettings foliageSummer;
-    public final SeasonColorSettings foliageAutumn;
-    public final SeasonColorSettings foliageWinter;
-
-
-    public ClientSeasonalColorSyncPacket(boolean updateRealtime, SeasonColorSettings grassSpring, SeasonColorSettings grassSummer, SeasonColorSettings grassAutumn, SeasonColorSettings grassWinter, SeasonColorSettings foliageSpring, SeasonColorSettings foliageSummer, SeasonColorSettings foliageAutumn, SeasonColorSettings foliageWinter) {
-        this.updateRealtime = updateRealtime;
-        this.grassSpring = grassSpring;
-        this.grassSummer = grassSummer;
-        this.grassAutumn = grassAutumn;
-        this.grassWinter = grassWinter;
-        this.foliageSpring = foliageSpring;
-        this.foliageSummer = foliageSummer;
-        this.foliageAutumn = foliageAutumn;
-        this.foliageWinter = foliageWinter;
-    }
+/**
+ * @param grassSpring All 8 season settings
+ */
+public record ClientSeasonalColorSyncPacket(boolean affectModdedBlocks, boolean affectSpruceLeaves, boolean updateRealtime,
+                                            SeasonColorSettings grassSpring, SeasonColorSettings grassSummer,
+                                            SeasonColorSettings grassAutumn, SeasonColorSettings grassWinter,
+                                            SeasonColorSettings foliageSpring, SeasonColorSettings foliageSummer,
+                                            SeasonColorSettings foliageAutumn, SeasonColorSettings foliageWinter) {
     // Helper to write one SeasonColorSettings
     private static void writeSettings(FriendlyByteBuf buf, SeasonColorSettings s) {
         buf.writeInt(s.r());
@@ -56,6 +37,8 @@ public class ClientSeasonalColorSyncPacket {
 
 
     public static void encode(ClientSeasonalColorSyncPacket packet, FriendlyByteBuf buf) {
+        buf.writeBoolean(packet.affectModdedBlocks);
+        buf.writeBoolean(packet.affectSpruceLeaves);
         buf.writeBoolean(packet.updateRealtime);
         writeSettings(buf, packet.grassSpring);
         writeSettings(buf, packet.grassSummer);
@@ -71,6 +54,8 @@ public class ClientSeasonalColorSyncPacket {
     public static ClientSeasonalColorSyncPacket decode(FriendlyByteBuf buf) {
         return new ClientSeasonalColorSyncPacket(
                 buf.readBoolean(),
+                buf.readBoolean(),
+                buf.readBoolean(),
                 readSettings(buf), // grassSpring
                 readSettings(buf), // grassSummer
                 readSettings(buf), // grassAutumn
@@ -83,28 +68,35 @@ public class ClientSeasonalColorSyncPacket {
     }
 
     // Handle: Process the packet on the receiving side
-    public static void handle(ClientSeasonalColorSyncPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            if(ctx.get().getDirection().getReceptionSide().isClient()) {
+    public static void handle(ClientSeasonalColorSyncPacket packet, CustomPayloadEvent.Context ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.isClientSide()) {
                 executeOnClient(packet);
             }
         });
-        ctx.get().setPacketHandled(true);
+        ctx.setPacketHandled(true);
     }
+
     @OnlyIn(Dist.CLIENT)
-    private static void executeOnClient(ClientSeasonalColorSyncPacket packet){
+    private static void executeOnClient(ClientSeasonalColorSyncPacket packet) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
-        SeasonalColorManager.updateRealTime = packet.updateRealtime;
-        SeasonalColorManager.GRASS_SPRING   = packet.grassSpring;
-        SeasonalColorManager.GRASS_SUMMER   = packet.grassSummer;
-        SeasonalColorManager.GRASS_AUTUMN   = packet.grassAutumn;
-        SeasonalColorManager.GRASS_WINTER   = packet.grassWinter;
-        SeasonalColorManager.FOLIAGE_SPRING = packet.foliageSpring;
-        SeasonalColorManager.FOLIAGE_SUMMER = packet.foliageSummer;
-        SeasonalColorManager.FOLIAGE_AUTUMN = packet.foliageAutumn;
-        SeasonalColorManager.FOLIAGE_WINTER = packet.foliageWinter;
-        if(SeasonalColorManager.updateRealTime)
+        SeasonalColorConfigValues.affectModdedBlocks = packet.affectModdedBlocks;
+        SeasonalColorConfigValues.affectSpruceLeaves = packet.affectSpruceLeaves;
+        SeasonalColorConfigValues.updateRealTime = packet.updateRealtime;
+
+        SeasonalColorConfigValues.GRASS_SPRING = packet.grassSpring;
+        SeasonalColorConfigValues.GRASS_SUMMER = packet.grassSummer;
+        SeasonalColorConfigValues.GRASS_AUTUMN = packet.grassAutumn;
+        SeasonalColorConfigValues.GRASS_WINTER = packet.grassWinter;
+        SeasonalColorConfigValues.FOLIAGE_SPRING = packet.foliageSpring;
+        SeasonalColorConfigValues.FOLIAGE_SUMMER = packet.foliageSummer;
+        SeasonalColorConfigValues.FOLIAGE_AUTUMN = packet.foliageAutumn;
+        SeasonalColorConfigValues.FOLIAGE_WINTER = packet.foliageWinter;
+        SeasonalColorConfigValues.pendingAffectModdedBlocks = SeasonalColorConfigValues.affectModdedBlocks;
+        SeasonalColorConfigValues.pendingAffectSpruceLeaves = SeasonalColorConfigValues.affectSpruceLeaves;
+        SeasonalColorConfigValues.pendingUpdateRealTime = SeasonalColorConfigValues.updateRealTime;
+        if (SeasonalColorConfigValues.updateRealTime)
             Minecraft.getInstance().levelRenderer.allChanged();
     }
 
