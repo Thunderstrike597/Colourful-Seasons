@@ -2,7 +2,7 @@ package net.kenji.colorful_seasons;
 
 import glitchcore.event.EventManager;
 import glitchcore.event.client.RegisterColorsEvent;
-import net.kenji.colorful_seasons.api.SeasonalColorManager;
+import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -18,7 +18,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistries;
 import sereneseasons.api.season.ISeasonColorProvider;
 import sereneseasons.api.season.ISeasonState;
@@ -69,7 +71,9 @@ public class BlockColorHandlers {
     {
         event.register((BlockState state, @Nullable BlockAndTintGetter dimensionReader, @Nullable BlockPos pos, int tintIndex) ->
         {
-            int finalColor = FoliageColor.getBirchColor();
+            int finalColor = FoliageColor.getDefaultColor();
+            if(!SeasonalColorConfigValues.affectSpruceLeaves) return finalColor;
+
             Level level = Minecraft.getInstance().player.level();
             ResourceKey<Level> dimension = Minecraft.getInstance().player.level().dimension();
 
@@ -85,10 +89,10 @@ public class BlockColorHandlers {
                     Season season = SeasonHelper.getSeasonState(level).getSeason();
 
                     SeasonColorSettings settings = switch (season) {
-                        case SPRING -> SeasonalColorManager.FOLIAGE_SPRING;
-                        case SUMMER -> SeasonalColorManager.FOLIAGE_SUMMER;
-                        case AUTUMN -> SeasonalColorManager.FOLIAGE_AUTUMN;
-                        case WINTER -> SeasonalColorManager.FOLIAGE_WINTER;
+                        case SPRING -> SeasonalColorConfigValues.FOLIAGE_SPRING;
+                        case SUMMER -> SeasonalColorConfigValues.FOLIAGE_SUMMER;
+                        case AUTUMN -> SeasonalColorConfigValues.FOLIAGE_AUTUMN;
+                        case WINTER -> SeasonalColorConfigValues.FOLIAGE_WINTER;
                     };
 
                     finalColor =  SeasonalColorOverride.applySettings(finalColor, settings);
@@ -132,6 +136,7 @@ public class BlockColorHandlers {
 
         event.register((state, dimensionReader, pos, tintIndex) -> {
             Level level = Minecraft.getInstance().player.level();
+            if(!SeasonalColorConfigValues.affectModdedBlocks) return FoliageColor.getDefaultColor();
             if (pos == null) return FoliageColor.getDefaultColor();
 
             Holder<Biome> biome = level.getBiome(pos);
@@ -150,10 +155,10 @@ public class BlockColorHandlers {
             // Apply your color settings
             Season season = calendar.getSeason();
             SeasonColorSettings settings = switch (season) {
-                case SPRING -> SeasonalColorManager.FOLIAGE_SPRING;
-                case SUMMER -> SeasonalColorManager.FOLIAGE_SUMMER;
-                case AUTUMN -> SeasonalColorManager.FOLIAGE_AUTUMN;
-                case WINTER -> SeasonalColorManager.FOLIAGE_WINTER;
+                case SPRING -> SeasonalColorConfigValues.FOLIAGE_SPRING;
+                case SUMMER -> SeasonalColorConfigValues.FOLIAGE_SUMMER;
+                case AUTUMN -> SeasonalColorConfigValues.FOLIAGE_AUTUMN;
+                case WINTER -> SeasonalColorConfigValues.FOLIAGE_WINTER;
             };
 
             if(isTaggedBiome(coldTags, biome) && season != Season.WINTER){

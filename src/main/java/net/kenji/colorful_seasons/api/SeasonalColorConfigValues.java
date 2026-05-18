@@ -1,15 +1,16 @@
 package net.kenji.colorful_seasons.api;
 
-import net.kenji.colorful_seasons.network.ClientSeasonalColorSyncPacket;
-import net.kenji.colorful_seasons.network.ModPacketHandler;
-import net.kenji.colorful_seasons.network.ServerSeasonalColorPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-public class SeasonalColorManager {
-    public static boolean updateRealTime = false;
+public class SeasonalColorConfigValues {
+    public static boolean pendingAffectModdedBlocks = false;
+    public static boolean pendingAffectSpruceLeaves = false;
+    public static boolean pendingUpdateRealTime = false;
 
+    public static boolean updateRealTime = false;
+    public static boolean affectModdedBlocks = false;
+    public static boolean affectSpruceLeaves = false;
 
     public static SeasonColorSettings GRASS_SPRING   = new SeasonColorSettings(  10, 68, 30, 0.5);
     public static SeasonColorSettings GRASS_SUMMER   = new SeasonColorSettings(  25, 85,  28, 0.5);
@@ -39,20 +40,6 @@ public class SeasonalColorManager {
             // Integrated/singleplayer: always allow
             return true;
         }
-    }
-    public static void syncSeasonalColorsToClient(ServerPlayer serverPlayer){
-
-        ModPacketHandler.sendToPlayer(new ClientSeasonalColorSyncPacket(
-                SeasonalColorManager.updateRealTime,
-                GRASS_SPRING,
-                GRASS_SUMMER,
-                GRASS_AUTUMN,
-                GRASS_WINTER,
-                FOLIAGE_SPRING,
-                FOLIAGE_SUMMER,
-                FOLIAGE_AUTUMN,
-                FOLIAGE_WINTER
-        ), serverPlayer);
     }
 
 }

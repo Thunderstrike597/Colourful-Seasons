@@ -3,15 +3,13 @@ package net.kenji.colorful_seasons.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kenji.colorful_seasons.api.SeasonColorSettings;
-import net.kenji.colorful_seasons.api.SeasonalColorManager;
+import net.kenji.colorful_seasons.api.SeasonalColorConfigValues;
 import net.kenji.colorful_seasons.network.ClientSeasonalColorSyncPacket;
 import net.kenji.colorful_seasons.network.ModPacketHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -29,6 +27,8 @@ public class ColorfulSeasonsServerConfig {
 
     // Plain data class Gson can serialize
     private static class ConfigData {
+        boolean affectModdedBlocks = false;
+        boolean affectSpruceLeaves = false;
         boolean updateRealTime = false;
 
         int[] grassSpring   = {0, 0, 0};       double grassSpringL   = 0.5;
@@ -44,25 +44,27 @@ public class ColorfulSeasonsServerConfig {
 
     public static void save(MinecraftServer server) {
         ConfigData data = new ConfigData();
-        data.updateRealTime = SeasonalColorManager.updateRealTime;
+        data.affectModdedBlocks = SeasonalColorConfigValues.affectModdedBlocks;
+        data.affectSpruceLeaves = SeasonalColorConfigValues.affectSpruceLeaves;
+        data.updateRealTime = SeasonalColorConfigValues.updateRealTime;
 
-        data.grassSpring  = toArr(SeasonalColorManager.GRASS_SPRING);
-        data.grassSpringL = SeasonalColorManager.GRASS_SPRING.lightness();
-        data.grassSummer  = toArr(SeasonalColorManager.GRASS_SUMMER);
-        data.grassSummerL = SeasonalColorManager.GRASS_SUMMER.lightness();
-        data.grassAutumn  = toArr(SeasonalColorManager.GRASS_AUTUMN);
-        data.grassAutumnL = SeasonalColorManager.GRASS_AUTUMN.lightness();
-        data.grassWinter  = toArr(SeasonalColorManager.GRASS_WINTER);
-        data.grassWinterL = SeasonalColorManager.GRASS_WINTER.lightness();
+        data.grassSpring  = toArr(SeasonalColorConfigValues.GRASS_SPRING);
+        data.grassSpringL = SeasonalColorConfigValues.GRASS_SPRING.lightness();
+        data.grassSummer  = toArr(SeasonalColorConfigValues.GRASS_SUMMER);
+        data.grassSummerL = SeasonalColorConfigValues.GRASS_SUMMER.lightness();
+        data.grassAutumn  = toArr(SeasonalColorConfigValues.GRASS_AUTUMN);
+        data.grassAutumnL = SeasonalColorConfigValues.GRASS_AUTUMN.lightness();
+        data.grassWinter  = toArr(SeasonalColorConfigValues.GRASS_WINTER);
+        data.grassWinterL = SeasonalColorConfigValues.GRASS_WINTER.lightness();
 
-        data.foliageSpring  = toArr(SeasonalColorManager.FOLIAGE_SPRING);
-        data.foliageSpringL = SeasonalColorManager.FOLIAGE_SPRING.lightness();
-        data.foliageSummer  = toArr(SeasonalColorManager.FOLIAGE_SUMMER);
-        data.foliageSummerL = SeasonalColorManager.FOLIAGE_SUMMER.lightness();
-        data.foliageAutumn  = toArr(SeasonalColorManager.FOLIAGE_AUTUMN);
-        data.foliageAutumnL = SeasonalColorManager.FOLIAGE_AUTUMN.lightness();
-        data.foliageWinter  = toArr(SeasonalColorManager.FOLIAGE_WINTER);
-        data.foliageWinterL = SeasonalColorManager.FOLIAGE_WINTER.lightness();
+        data.foliageSpring  = toArr(SeasonalColorConfigValues.FOLIAGE_SPRING);
+        data.foliageSpringL = SeasonalColorConfigValues.FOLIAGE_SPRING.lightness();
+        data.foliageSummer  = toArr(SeasonalColorConfigValues.FOLIAGE_SUMMER);
+        data.foliageSummerL = SeasonalColorConfigValues.FOLIAGE_SUMMER.lightness();
+        data.foliageAutumn  = toArr(SeasonalColorConfigValues.FOLIAGE_AUTUMN);
+        data.foliageAutumnL = SeasonalColorConfigValues.FOLIAGE_AUTUMN.lightness();
+        data.foliageWinter  = toArr(SeasonalColorConfigValues.FOLIAGE_WINTER);
+        data.foliageWinterL = SeasonalColorConfigValues.FOLIAGE_WINTER.lightness();
 
         try {
             File file = getConfigPath(server).toFile();
@@ -81,17 +83,19 @@ public class ColorfulSeasonsServerConfig {
 
         try (Reader reader = new FileReader(file)) {
             ConfigData data = GSON.fromJson(reader, ConfigData.class);
-            SeasonalColorManager.updateRealTime = data.updateRealTime;
+            SeasonalColorConfigValues.affectModdedBlocks = data.affectModdedBlocks;
+            SeasonalColorConfigValues.affectSpruceLeaves = data.affectSpruceLeaves;
+            SeasonalColorConfigValues.updateRealTime = data.updateRealTime;
 
-            SeasonalColorManager.GRASS_SPRING  = fromArr(data.grassSpring,  data.grassSpringL);
-            SeasonalColorManager.GRASS_SUMMER  = fromArr(data.grassSummer,  data.grassSummerL);
-            SeasonalColorManager.GRASS_AUTUMN  = fromArr(data.grassAutumn,  data.grassAutumnL);
-            SeasonalColorManager.GRASS_WINTER  = fromArr(data.grassWinter,  data.grassWinterL);
+            SeasonalColorConfigValues.GRASS_SPRING  = fromArr(data.grassSpring,  data.grassSpringL);
+            SeasonalColorConfigValues.GRASS_SUMMER  = fromArr(data.grassSummer,  data.grassSummerL);
+            SeasonalColorConfigValues.GRASS_AUTUMN  = fromArr(data.grassAutumn,  data.grassAutumnL);
+            SeasonalColorConfigValues.GRASS_WINTER  = fromArr(data.grassWinter,  data.grassWinterL);
 
-            SeasonalColorManager.FOLIAGE_SPRING  = fromArr(data.foliageSpring,  data.foliageSpringL);
-            SeasonalColorManager.FOLIAGE_SUMMER  = fromArr(data.foliageSummer,  data.foliageSummerL);
-            SeasonalColorManager.FOLIAGE_AUTUMN  = fromArr(data.foliageAutumn,  data.foliageAutumnL);
-            SeasonalColorManager.FOLIAGE_WINTER  = fromArr(data.foliageWinter,  data.foliageWinterL);
+            SeasonalColorConfigValues.FOLIAGE_SPRING  = fromArr(data.foliageSpring,  data.foliageSpringL);
+            SeasonalColorConfigValues.FOLIAGE_SUMMER  = fromArr(data.foliageSummer,  data.foliageSummerL);
+            SeasonalColorConfigValues.FOLIAGE_AUTUMN  = fromArr(data.foliageAutumn,  data.foliageAutumnL);
+            SeasonalColorConfigValues.FOLIAGE_WINTER  = fromArr(data.foliageWinter,  data.foliageWinterL);
 
 
 
@@ -104,15 +108,17 @@ public class ColorfulSeasonsServerConfig {
         load(event.getServer());
         // Broadcast loaded values to any already-connected clients
         ModPacketHandler.sendToAll(new ClientSeasonalColorSyncPacket(
-                SeasonalColorManager.updateRealTime,
-                SeasonalColorManager.GRASS_SPRING,
-                SeasonalColorManager.GRASS_SUMMER,
-                SeasonalColorManager.GRASS_AUTUMN,
-                SeasonalColorManager.GRASS_WINTER,
-                SeasonalColorManager.FOLIAGE_SPRING,
-                SeasonalColorManager.FOLIAGE_SUMMER,
-                SeasonalColorManager.FOLIAGE_AUTUMN,
-                SeasonalColorManager.FOLIAGE_WINTER
+                SeasonalColorConfigValues.affectModdedBlocks,
+                SeasonalColorConfigValues.affectSpruceLeaves,
+                SeasonalColorConfigValues.updateRealTime,
+                SeasonalColorConfigValues.GRASS_SPRING,
+                SeasonalColorConfigValues.GRASS_SUMMER,
+                SeasonalColorConfigValues.GRASS_AUTUMN,
+                SeasonalColorConfigValues.GRASS_WINTER,
+                SeasonalColorConfigValues.FOLIAGE_SPRING,
+                SeasonalColorConfigValues.FOLIAGE_SUMMER,
+                SeasonalColorConfigValues.FOLIAGE_AUTUMN,
+                SeasonalColorConfigValues.FOLIAGE_WINTER
         ));
     }
 
