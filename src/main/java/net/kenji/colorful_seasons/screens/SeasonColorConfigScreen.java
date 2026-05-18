@@ -100,6 +100,8 @@ public class SeasonColorConfigScreen extends Screen {
 
         updateRealTimeButton = createNewButton(() -> {
             SeasonalColorConfigValues.pendingUpdateRealTime = !SeasonalColorConfigValues.pendingUpdateRealTime;
+            ConfigManager.syncSeasonalColorsToServer();
+
             this.rebuildWidgets();
         });
         GRASS_SPRING   = SeasonalColorConfigValues.GRASS_SPRING;
